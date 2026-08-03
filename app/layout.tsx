@@ -1,5 +1,6 @@
 import './globals.css';
 import type { Metadata } from 'next';
+import AppShell from './app-shell';
 
 export const metadata: Metadata = {
   title: 'MV DESIGN',
@@ -13,7 +14,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr">
-      <body className="bg-white text-gray-900">{children}</body>
+      <body className="bg-white text-gray-900">
+        <AppShell>{children}</AppShell>
+      </body>
     </html>
   );
 }
