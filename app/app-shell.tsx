@@ -24,7 +24,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         <div className="fixed inset-0 bg-black bg-opacity-40 z-30 md:hidden" onClick={() => setMobileOpen(false)} />
       )}
 
-      <aside className={`fixed md:static z-40 top-0 left-0 h-full w-64 bg-gray-900 text-slate-200 flex flex-col transition-transform duration-200 ${mobileOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}>
+      <aside className={`fixed md:static z-40 top-0 left-0 min-h-screen w-64 bg-gray-900 text-slate-200 flex flex-col transition-transform duration-200 ${mobileOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}>
         <div className="flex items-center gap-2 px-6 h-16 border-b border-gray-800">
           <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center font-bold text-white text-sm">MV</div>
           <div>
