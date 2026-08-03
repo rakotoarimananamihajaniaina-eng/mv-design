@@ -36,7 +36,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           </button>
         </div>
 
-        <nav className="flex-1 px-3 py-4 space-y-1">
+        <nav className="flex-1 py-4 space-y-1">
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
             const active = pathname === item.href;
@@ -45,7 +45,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                 key={item.href}
                 href={item.href}
                 onClick={() => setMobileOpen(false)}
-                className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-full text-sm transition-colors ${active ? 'bg-blue-600 text-white' : 'text-slate-300 hover:bg-gray-800 hover:text-white'}`}
+                className={`w-full flex items-center gap-3 px-6 py-2.5 text-sm transition-colors ${active ? 'bg-blue-600 text-white' : 'text-slate-300 hover:bg-gray-800 hover:text-white'}`}
               >
                 <Icon size={17} />
                 {item.label}
