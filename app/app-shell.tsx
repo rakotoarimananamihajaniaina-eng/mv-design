@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
-import { LayoutGrid, FileText, Users, Package, BarChart3, Settings, Menu, X, Bell } from 'lucide-react';
+import { LayoutGrid, FileText, Users, Package, BarChart3, Settings, Menu, X, Bell, LogOut } from 'lucide-react';
 
 const NAV_ITEMS = [
   { href: '/dashboard', label: 'Tableau de bord', icon: LayoutGrid },
@@ -58,6 +58,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-semibold shrink-0">AD</div>
           <div className="min-w-0">
             <p className="text-sm text-white truncate">Administrateur</p>
+            <button className="text-xs text-slate-400 hover:text-slate-200 flex items-center gap-1">
+              <LogOut size={12} /> Déconnexion
+            </button>
           </div>
         </div>
       </aside>
