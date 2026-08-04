@@ -4,14 +4,16 @@ import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { Plus, Search, Pencil, Download, Trash2 } from 'lucide-react';
 
-const formatAr = (n: number) => `Ar ${Number(n || 0).toLocaleString('fr-FR', { maximumFractionDigits: 0 })}`;
+function formatAr(n) {
+  return 'Ar ' + Number(n || 0).toLocaleString('fr-FR', { maximumFractionDigits: 0 });
+}
 
-const TYPE_STYLES: Record<string, string> = {
+var TYPE_STYLES = {
   devis: 'bg-blue-50 text-blue-600',
   facture: 'bg-green-50 text-green-600',
 };
 
-const STATUT_COLORS: Record<string, string> = {
+var STATUT_COLORS = {
   brouillon: 'text-gray-500',
   en_attente: 'text-amber-600',
   accepte: 'text-green-600',
@@ -21,7 +23,7 @@ const STATUT_COLORS: Record<string, string> = {
   partielle: 'text-amber-600',
 };
 
-const STATUT_LABELS: Record<string, string> = {
+var STATUT_LABELS = {
   brouillon: 'Brouillon',
   en_attente: 'En attente',
   accepte: 'Accepté',
@@ -31,52 +33,68 @@ const STATUT_LABELS: Record<string, string> = {
   partielle: 'Partielle',
 };
 
-type DocRow = {
-  id: string;
-  type: string;
-  reference: string;
-  date: string;
-  objet: string | null;
-  sous_total: number;
-  total_ttc: number;
-  statut: string;
-  clients: { nom: string } | null;
-};
+var TABS = ['tous', 'devis', 'facture'];
 
 export default function DocumentsPage() {
-  const supabase = createClient();
-  const [loading, setLoading] = useState(true);
-  const [docs, setDocs] = useState<DocRow[]>([]);
-  const [search, setSearch] = useState('');
-  const [typeFilter, setTypeFilter] = useState<'tous' | 'devis' | 'facture'>('tous');
+  var supabase = createClient();
+  var loadingState = useState(true);
+  var loading = loadingState[0];
+  var setLoading = loadingState[1];
 
-  const load = async () => {
+  var docsState = useState([]);
+  var docs = docsState[0];
+  var setDocs = docsState[1];
+
+  var searchState = useState('');
+  var search = searchState[0];
+  var setSearch = searchState[1];
+
+  var typeFilterState = useState('tous');
+  var typeFilter = typeFilterState[0];
+  var setTypeFilter = typeFilterState[1];
+
+  function load() {
     setLoading(true);
-    const { data, error } = await supabase
+    supabase
       .from('documents')
       .select('id, type, reference, date, objet, sous_total, total_ttc, statut, clients(nom)')
-      .order('created_at', { ascending: false });
-    if (!error && data) setDocs(data as unknown as DocRow[]);
-    setLoading(false);
-  };
+      .order('created_at', { ascending: false })
+      .then(function (result) {
+        if (!result.error && result.data) {
+          setDocs(result.data);
+        }
+        setLoading(false);
+      });
+  }
 
-  useEffect(() => {
+  useEffect(function () {
     load();
   }, []);
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Supprimer ce document ?')) return;
-    const { error } = await supabase.from('documents').delete().eq('id', id);
-    if (!error) setDocs((prev) => prev.filter((d) => d.id !== id));
-  };
+  function handleDelete(id) {
+    var ok = confirm('Supprimer ce document ?');
+    if (!ok) return;
+    supabase
+      .from('documents')
+      .delete()
+      .eq('id', id)
+      .then(function (result) {
+        if (!result.error) {
+          setDocs(docs.filter(function (d) {
+            return d.id !== id;
+          }));
+        }
+      });
+  }
 
-  const filtered = docs.filter((d) => {
-    const matchesType = typeFilter === 'tous' || d.type === typeFilter;
-    const q = search.toLowerCase();
-    const matchesSearch =
-      d.reference.toLowerCase().includes(q) ||
-      (d.clients?.nom || '').toLowerCase().includes(q) ||
-      (d.objet || '').toLowerCase().includes(q);
+  var q = search.toLowerCase();
+  var filtered = docs.filter(function (d) {
+    var matchesType = typeFilter === 'tous' || d.type === typeFilter;
+    var clientNom = d.clients && d.clients.nom ? d.clients.nom : '';
+    var matchesSearch =
+      d.reference.toLowerCase().indexOf(q) !== -1 ||
+      clientNom.toLowerCase().indexOf(q) !== -1 ||
+      (d.objet || '').toLowerCase().indexOf(q) !== -1;
     return matchesType && matchesSearch;
   });
 
@@ -91,29 +109,31 @@ export default function DocumentsPage() {
           href="/documents/nouveau"
           className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-blue-600 text-white text-sm font-medium shadow-sm hover:bg-blue-700 transition-colors"
         >
-          <Plus size={16} /> Nouveau document
+          <Plus size={16} />
+          Nouveau document
         </a>
       </div>
 
       <div className="flex items-center gap-6 border-b border-gray-200 mb-4">
-        {(['tous', 'devis', 'facture'] as const).map((t) => (
-          <button
-            key={t}
-            onClick={() => setTypeFilter(t)}
-            className={`pb-3 text-sm font-medium border-b-2 -mb-px transition-colors ${
-              typeFilter === t ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            {t === 'tous' ? 'Tous' : t === 'devis' ? 'Devis' : 'Factures'}
-          </button>
-        ))}
+        {TABS.map(function (t) {
+          var label = t === 'tous' ? 'Tous' : t === 'devis' ? 'Devis' : 'Factures';
+          var isActive = typeFilter === t;
+          var tabClass = isActive
+            ? 'pb-3 text-sm font-medium border-b-2 -mb-px transition-colors border-blue-600 text-blue-600'
+            : 'pb-3 text-sm font-medium border-b-2 -mb-px transition-colors border-transparent text-gray-500 hover:text-gray-700';
+          return (
+            <button key={t} onClick={function () { setTypeFilter(t); }} className={tabClass}>
+              {label}
+            </button>
+          );
+        })}
       </div>
 
       <div className="relative mb-4 max-w-md">
         <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
         <input
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={function (e) { setSearch(e.target.value); }}
           placeholder="Rechercher par référence, client, objet..."
           className="w-full rounded-full border border-gray-200 bg-white pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
@@ -142,33 +162,37 @@ export default function DocumentsPage() {
                 </td>
               </tr>
             )}
-            {!loading &&
-              filtered.map((d) => (
+            {!loading && filtered.map(function (d) {
+              var clientNom = d.clients && d.clients.nom ? d.clients.nom : '—';
+              var typeStyle = TYPE_STYLES[d.type] || 'bg-gray-50 text-gray-600';
+              var statutColor = STATUT_COLORS[d.statut] || 'text-gray-500';
+              var statutLabel = STATUT_LABELS[d.statut] || d.statut;
+              return (
                 <tr key={d.id} className="hover:bg-gray-50">
                   <td className="px-5 py-3.5 font-medium text-gray-900 whitespace-nowrap">{d.reference}</td>
                   <td className="px-5 py-3.5 whitespace-nowrap">
-                    <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${TYPE_STYLES[d.type] || 'bg-gray-50 text-gray-600'}`}>
+                    <span className={'px-2.5 py-1 rounded-full text-xs font-medium ' + typeStyle}>
                       {d.type === 'devis' ? 'Devis' : 'Facture'}
                     </span>
                   </td>
                   <td className="px-5 py-3.5 text-gray-500 whitespace-nowrap">{d.date}</td>
-                  <td className="px-5 py-3.5 text-gray-900 whitespace-nowrap">{d.clients?.nom || '—'}</td>
+                  <td className="px-5 py-3.5 text-gray-900 whitespace-nowrap">{clientNom}</td>
                   <td className="px-5 py-3.5 text-gray-500 max-w-xs truncate">{d.objet || '—'}</td>
                   <td className="px-5 py-3.5 text-gray-600 whitespace-nowrap">{formatAr(d.sous_total)}</td>
                   <td className="px-5 py-3.5 font-medium text-gray-900 whitespace-nowrap">{formatAr(d.total_ttc)}</td>
-                  <td className={`px-5 py-3.5 font-medium whitespace-nowrap ${STATUT_COLORS[d.statut] || 'text-gray-500'}`}>
-                    {STATUT_LABELS[d.statut] || d.statut}
+                  <td className={'px-5 py-3.5 font-medium whitespace-nowrap ' + statutColor}>
+                    {statutLabel}
                   </td>
                   <td className="px-5 py-3.5">
                     <div className="flex items-center justify-end gap-1">
-                      <a href={`/documents/${d.id}`} className="p-1.5 rounded-md text-gray-400 hover:text-blue-600 hover:bg-blue-50">
+                      <a href={'/documents/' + d.id} className="p-1.5 rounded-md text-gray-400 hover:text-blue-600 hover:bg-blue-50">
                         <Pencil size={15} />
                       </a>
                       <button className="p-1.5 rounded-md text-gray-400 hover:text-blue-600 hover:bg-blue-50">
                         <Download size={15} />
                       </button>
                       <button
-                        onClick={() => handleDelete(d.id)}
+                        onClick={function () { handleDelete(d.id); }}
                         className="p-1.5 rounded-md text-gray-400 hover:text-red-600 hover:bg-red-50"
                       >
                         <Trash2 size={15} />
@@ -176,7 +200,8 @@ export default function DocumentsPage() {
                     </div>
                   </td>
                 </tr>
-              ))}
+              );
+            })}
             {!loading && filtered.length === 0 && (
               <tr>
                 <td colSpan={9} className="px-5 py-10 text-center text-sm text-gray-400">
